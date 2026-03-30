@@ -1,0 +1,11 @@
+# Ignore large model folders 
+mental_health_models/
+__pycache__/
+*.pt
+*.bin
+
+# Ignore temporary files
+*.pkl
+*.pyc
+.DS_Store
+.vscode/
