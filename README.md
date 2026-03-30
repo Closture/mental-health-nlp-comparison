@@ -21,10 +21,15 @@ RoBERTa clearly outperformed the others.
 All plots and the final table are saved in results/figures/ and results/final_comparison_table.csv
 
 
-4_transformer_models.py – BERT, DistilBERT, RoBERTa training
-3_lstm_model.py – BiLSTM with attention
-2_baseline_model.py – TF-IDF baseline
-5_evaluation.py – Generates all comparison charts and table
+◦ 4_transformer_models.py – BERT, DistilBERT, RoBERTa training
+
+◦ 3_lstm_model.py – BiLSTM with attention
+
+◦ 2_baseline_model.py – TF-IDF baseline
+
+◦ 5_evaluation.py – Generates all comparison charts and table
+
+
 
 
 ### How to Run
