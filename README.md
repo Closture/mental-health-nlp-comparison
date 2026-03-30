@@ -8,11 +8,13 @@ This project compares classical machine learning and modern transformer models f
 
 ### Final Results
 
-RoBERTa-base: Accuracy: 92.74%; Macro F1: **92.77%**; Rank: 1
-BERT-base: Accuracy: 87.60%; Macro F1: 87.41%; Rank: 2
-DistilBERT-base: Accuracy: 86.90%; Macro F1: 86.73%; Rank: 3
-TF-IDF + Logistic Regression: Accuracy: 77.52%; Macro F1: 77.43%; Rank: 4
-BiLSTM (with attention): Accuracy: 73.08%; Macro F1: 72.47%; Rank: 5 
+| Model                        | Accuracy | Macro F1   | Rank |
+|------------------------------|----------|------------|------|
+| **RoBERTa-base**             | 92.74%   | **92.77%** | 1    |
+| BERT-base                    | 87.60%   | 87.41%     | 2    |
+| DistilBERT-base              | 86.90%   | 86.73%     | 3    |
+| TF-IDF + Logistic Regression | 77.52%   | 77.43%     | 4    |
+| BiLSTM (with attention)      | 73.08%   | 72.47%     | 5    |
 
 RoBERTa clearly outperformed the others.
 
