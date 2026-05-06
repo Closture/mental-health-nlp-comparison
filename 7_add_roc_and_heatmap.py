@@ -18,7 +18,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import label_binarize
 
 os.makedirs("results/figures", exist_ok=True)
-
+# Load test set and label info for AUC and heatmap calculations
 with open("data/splits.pkl", "rb") as f:
     splits = pickle.load(f)
 X_test   = splits["X_test"]
@@ -30,7 +30,7 @@ NUM_LABELS = len(LABELS)
 # Binarize labels for OvR AUC
 y_bin = label_binarize(y_test, classes=list(range(NUM_LABELS)))
 
-# ── 1. TF-IDF AUC ─────────────────────────────────────────────────────────────
+# 1. Compute ROC AUC for all models that support it (TF-IDF, BiLSTM, Transformers)
 print("Computing TF-IDF AUC...")
 auc_results = {}
 try:
@@ -43,7 +43,7 @@ try:
 except Exception as e:
     print(f"  TF-IDF AUC failed: {e}")
 
-# ── 2. Transformer AUC ────────────────────────────────────────────────────────
+# For BiLSTM and Transformers, we need to reload each model and run inference to get probabilities, since we didn't save probabilities during evaluation. This is done in 10_compute_missing_auc.py to avoid cluttering the training scripts with extra inference code. The results are saved back to all_results.json
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datasets import Dataset
 
@@ -62,7 +62,7 @@ TRANSFORMER_CONFIGS_ALT = [
     ("DistilBERT", "distilbert-base-uncased",  "mental_health_models/distilbert-base-uncased_final"),
     ("RoBERTa",    "roberta-base",             "mental_health_models/roberta-base_final"),
 ]
-
+# Note: the random DistilBERT is only in our results folder, not in the original pipeline, so no alt dir for that one.
 def get_probs(model_id, model_dir):
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model     = AutoModelForSequenceClassification.from_pretrained(model_dir)
@@ -79,7 +79,7 @@ def get_probs(model_id, model_dir):
         all_probs.extend(probs)
     del model; torch.cuda.empty_cache()
     return np.array(all_probs)
-
+# Loop through transformers, compute AUC if not already done, and save results back to all_results.json
 for name, model_id, model_dir in TRANSFORMER_CONFIGS:
     if name in auc_results:
         continue
@@ -102,7 +102,7 @@ for name, model_id, model_dir in TRANSFORMER_CONFIGS:
         except Exception as e:
             print(f"  {name} from {d} failed: {e}")
 
-# ── 3. Load all results and merge AUC ─────────────────────────────────────────
+# Update all_results.json with new AUC scores
 with open("results/all_results.json") as f:
     all_results = json.load(f)
 
@@ -115,7 +115,7 @@ with open("results/all_results.json", "w") as f:
 
 print("\nAUC scores added to all_results.json")
 
-# ── 4. Per-class F1 heatmap ───────────────────────────────────────────────────
+# Generate per-class F1 heatmap across all models (using confusion matrix values we have, since we didn't save per-class metrics during evaluation)
 print("\nGenerating per-class F1 heatmap...")
 
 # Hardcode per-class F1 from confusion matrices we have
@@ -176,7 +176,7 @@ plt.savefig("results/figures/per_class_f1_heatmap.png",
 plt.close()
 print("Saved: results/figures/per_class_f1_heatmap.png")
 
-# ── 5. Updated summary table ──────────────────────────────────────────────────
+# 3. Updated final comparison table with AUC column
 ORDER = ["TF-IDF + LR", "BiLSTM", "DistilBERT (random)",
          "BERT", "DistilBERT", "RoBERTa"]
 rows = []

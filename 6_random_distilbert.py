@@ -47,7 +47,7 @@ def main():
 
     print(f"Device: {'GPU' if torch.cuda.is_available() else 'CPU'}")
 
-    # ── Dataset ───────────────────────────────────────────────────────────────
+    #  Dataset preparation: convert to Hugging Face Datasets format for easier tokenisation
     raw = DatasetDict({
         "train": Dataset.from_dict({"text": X_train.tolist(), "label": y_train.tolist()}),
         "val":   Dataset.from_dict({"text": X_val.tolist(),   "label": y_val.tolist()}),
@@ -66,7 +66,7 @@ def main():
                              remove_columns=["text"])
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
-    # ── RANDOM INIT: build config from scratch, do NOT load pretrained weights ─
+    # Build config with random weights (no pre-training loaded)
     print("\nBuilding randomly initialised DistilBERT (No pre-trained weights)...")
     config = DistilBertConfig(
         vocab_size=tokenizer.vocab_size,
@@ -82,7 +82,7 @@ def main():
         id2label=id2label,
         label2id=label2id,
     )
-    # from_config() initialises ALL weights randomly — no pre-training loaded
+    # Note: DistilBERT has ~66M parameters, all randomly initialised here, so this is a much harder training task than the BiLSTM with 300k params. 
     model = DistilBertForSequenceClassification(config)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Model parameters: {total_params:,} (all randomly initialised)")
@@ -131,7 +131,7 @@ def main():
     train_result = trainer.train()
     print(f"Runtime: {train_result.metrics['train_runtime']:.0f}s")
 
-    # ── Test evaluation ───────────────────────────────────────────────────────
+    # Evaluation on test set
     print("\nEvaluating on test set...")
     pred_output = trainer.predict(tokenised["test"])
     logits      = pred_output.predictions
@@ -160,7 +160,7 @@ def main():
     plt.close()
     print("Saved: results/figures/random_distilbert_cm.png")
 
-    # ── Update all_results.json ───────────────────────────────────────────────
+    # Update the per-class F1 heatmap data to include random DistilBERT
     results = {}
     try:
         with open("results/all_results.json") as f:
@@ -174,7 +174,7 @@ def main():
         "precision": round(test_prec, 4),
         "recall":    round(test_rec,  4),
     }
-
+# Update the per-class F1 scores for the heatmap (these are calculated from the confusion matrix)
     with open("results/all_results.json", "w") as f:
         json.dump(results, f, indent=2)
 

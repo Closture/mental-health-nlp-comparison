@@ -13,7 +13,7 @@ import seaborn as sns
 
 os.makedirs("results/figures", exist_ok=True)
 
-# ── Per-class F1 computed from confusion matrices ─────────────────────────────
+# Load test set and label info for AUC and heatmap calculations
 # Formula: F1 = 2*TP / (2*TP + FP + FN)
 # For each class: TP = diagonal, FP = column sum - TP, FN = row sum - TP
 
@@ -21,7 +21,7 @@ def f1_from_cm(tp, row_sum, col_sum):
     fp = col_sum - tp
     fn = row_sum - tp
     return round(2*tp / (2*tp + fp + fn), 3)
-
+# The confusion matrix values for random DistilBERT (from a fresh run):
 per_class_f1 = {
     "TF-IDF + LR": {
         # CM rows: Normal[206,17,19,6], Anxiety[11,202,28,7], Depression[17,32,159,40], Suicidal[13,4,29,202]
@@ -73,7 +73,7 @@ ORDER  = ["TF-IDF + LR", "BiLSTM", "DistilBERT (random)",
 
 df = pd.DataFrame(per_class_f1).T[LABELS]
 df = df.loc[ORDER]
-
+# Print the per-class F1 scores for verification
 print("Per-Class F1 Scores:")
 print(df.to_string(float_format="{:.3f}".format))
 
@@ -95,7 +95,7 @@ print("\nSaved: results/figures/per_class_f1_heatmap.png")
 # ── Also fix the bar chart to properly include random DistilBERT ──────────────
 with open("results/all_results.json") as f:
     all_results = json.load(f)
-
+# Update the per-class F1 heatmap data to include random DistilBERT (these are calculated from the confusion matrix)
 metrics = ["accuracy", "f1_macro", "precision", "recall"]
 mlabels = ["Accuracy", "Macro F1", "Precision", "Recall"]
 colors  = {
@@ -121,7 +121,7 @@ for i, model in enumerate(models_ordered):
         ax.text(bar.get_x()+bar.get_width()/2, bar.get_height()+0.004,
                 f"{v:.3f}", ha="center", va="bottom", fontsize=7,
                 rotation=90)
-
+# Fix x-axis ticks and labels to be centered and properly spaced
 ax.set_xticks(x + width*(len(models_ordered)-1)/2)
 ax.set_xticklabels(mlabels, fontsize=12)
 ax.set_ylim(0, 1.15)
@@ -136,7 +136,7 @@ plt.savefig("results/figures/model_comparison_bar_full.png", dpi=150, bbox_inche
 plt.close()
 print("Saved: results/figures/model_comparison_bar_full.png")
 
-# ── Print final summary for report ───────────────────────────────────────────
+# Final summary table with AUC column
 print("\n── Complete Results Summary ──")
 print(f"{'Model':<22} {'Acc':>6} {'F1':>6} {'Prec':>6} {'Rec':>6} {'AUC':>7}")
 print("-" * 60)

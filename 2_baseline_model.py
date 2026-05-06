@@ -16,6 +16,7 @@ from sklearn.metrics import (
     classification_report, confusion_matrix,
 )
 
+# Make sure we have a place to put the plots
 os.makedirs("results/figures", exist_ok=True)
 
 # Load splits
@@ -32,11 +33,13 @@ LABELS           = [id2label[i] for i in range(len(id2label))]
 print(f"Classes: {LABELS}")
 
 # Training the baseline model
+# Setting up a simple TF-IDF + Logistic Regression pipeline
+# Using bigrams and 'balanced' weights since the data is likely skewed
 print("Training TF-IDF + Logistic Regression...")
 pipeline = Pipeline([
     ("tfidf", TfidfVectorizer(
         max_features=50_000,
-        ngram_range=(1, 2),
+        ngram_range=(1, 2),  # Catching phrases like "feel like" or "don't know"
         min_df=2,
         sublinear_tf=True,
         strip_accents="unicode",
@@ -46,7 +49,7 @@ pipeline = Pipeline([
         max_iter=1000,
         class_weight="balanced", 
         random_state=42,
-        n_jobs=-1,
+        n_jobs=-1, # Use all CPU cores
     )),
 ])
 
@@ -70,7 +73,7 @@ print(f"Test  — Accuracy: {test_acc:.4f}  |  Macro F1: {test_f1:.4f}")
 print("\nDetailed Classification Report:")
 print(classification_report(y_test, test_preds, target_names=LABELS))
 
-# Confusion matrix
+# Plotting the Confusion Matrix for the test set
 fig, ax = plt.subplots(figsize=(8, 6))
 cm = confusion_matrix(y_test, test_preds)
 sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax,
@@ -119,7 +122,7 @@ results["TF-IDF + LR"] = {
 
 with open("results/all_results.json", "w") as f:
     json.dump(results, f, indent=2)
-
+# Save the actual model just in case we need it for inference later
 with open("results/baseline_pipeline.pkl", "wb") as f:
     pickle.dump(pipeline, f)
 

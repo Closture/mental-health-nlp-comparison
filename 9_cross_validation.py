@@ -45,7 +45,7 @@ print(f"Total samples for CV: {len(X_all)}")
 
 skf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE)
 
-# ── 1. TF-IDF + LR Cross-Validation ──────────────────────────────────────────
+#  1. TF-IDF + LR Cross-Validation
 print(f"\n{'='*50}")
 print(f"TF-IDF + LR  —  {N_FOLDS}-Fold Stratified CV")
 print(f"{'='*50}")
@@ -92,7 +92,7 @@ tfidf_cv_mean = {k: round(float(np.mean(v)), 4)
 tfidf_cv_std  = {k: round(float(np.std(v)),  4)
                  for k, v in tfidf_cv_scores.items()}
 
-# ── 2. BiLSTM Cross-Validation ────────────────────────────────────────────────
+# 2. BiLSTM Cross-Validation
 print(f"\n{'='*50}")
 print(f"BiLSTM  —  {N_FOLDS}-Fold Stratified CV")
 print(f"{'='*50}")
@@ -125,7 +125,7 @@ class TextDataset(Dataset):
     def __len__(self): return len(self.labels)
     def __getitem__(self, i):
         return self.encode(self.texts[i]), torch.tensor(self.labels[i], dtype=torch.long)
-
+# BiLSTM model definition
 class BiLSTMClassifier(nn.Module):
     def __init__(self, vocab_size, embed_dim, hidden_dim, n_layers, dropout, n_classes):
         super().__init__()
@@ -145,7 +145,7 @@ class BiLSTMClassifier(nn.Module):
         return self.fc(self.dropout(ctx))
 
 bilstm_cv_scores = {"accuracy": [], "f1_macro": [], "precision": [], "recall": []}
-
+# We will build a new vocabulary for each fold using only the training data of that fold, to avoid any data leakage. This means the vocab size may vary slightly between folds.
 for fold, (train_idx, val_idx) in enumerate(skf.split(X_all, y_all), 1):
     print(f"\n  Fold {fold}/{N_FOLDS}...")
     X_tr, X_vl = X_all[train_idx], X_all[val_idx]
@@ -232,7 +232,7 @@ bilstm_cv_mean = {k: round(float(np.mean(v)), 4)
 bilstm_cv_std  = {k: round(float(np.std(v)),  4)
                   for k, v in bilstm_cv_scores.items()}
 
-# ── 3. Save CV results ────────────────────────────────────────────────────────
+# 3. Save CV results to JSON for later analysis and plotting
 cv_results = {
     "TF-IDF + LR": {
         "cv_mean": tfidf_cv_mean,
@@ -252,7 +252,7 @@ with open("results/cv_results.json", "w") as f:
     json.dump(cv_results, f, indent=2)
 print("\nSaved: results/cv_results.json")
 
-# ── 4. CV comparison plot ─────────────────────────────────────────────────────
+# 4. Plot CV results (accuracy and F1 across folds)
 fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
 for ax, (model_name, scores) in zip(axes, bilstm_cv_scores.items() if False else
@@ -269,13 +269,14 @@ for ax, (model_name, scores) in zip(axes, bilstm_cv_scores.items() if False else
     ax.set_ylim(0.6, 1.0); ax.legend(fontsize=9)
     ax.grid(alpha=0.3); ax.spines[["top","right"]].set_visible(False)
 
+# Overall title and save
 plt.suptitle("5-Fold Cross-Validation Results", fontweight="bold", fontsize=14)
 plt.tight_layout()
 plt.savefig("results/figures/cross_validation.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("Saved: results/figures/cross_validation.png")
 
-# ── 5. Final summary table ────────────────────────────────────────────────────
+# Final summary printout for report
 print("\n── Cross-Validation Summary ──")
 print(f"{'Model':<15} {'Acc Mean':>10} {'Acc Std':>8} "
       f"{'F1 Mean':>8} {'F1 Std':>8}")

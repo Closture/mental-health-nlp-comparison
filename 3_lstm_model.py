@@ -22,7 +22,7 @@ from sklearn.metrics import (
 from collections import Counter
 
 os.makedirs("results/figures", exist_ok=True)
-
+# Hyperparameters, adjusted for a 4-class text task
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 EMBED_DIM = 128
 HIDDEN_DIM = 256
@@ -88,7 +88,7 @@ class TextDataset(Dataset):
     def __getitem__(self, i):
         return self.encode(self.texts[i]), torch.tensor(self.labels[i], dtype=torch.long)
 
-# num_workers=0 is important on Windows - avoids multiprocessing errors
+# num_workers=0 is important on Windows, avoids multiprocessing errors
 train_loader = DataLoader(TextDataset(X_train, y_train, word2idx, MAX_LEN),
                           batch_size=BATCH_SIZE, shuffle=True, num_workers=0, pin_memory=False)
 val_loader   = DataLoader(TextDataset(X_val, y_val, word2idx, MAX_LEN),
