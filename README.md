@@ -1,5 +1,5 @@
 # Mental Health Text Classification — Comparative NLP Study
-## QMUL Final Year Project 2025/26 | Chizara Vincent Okoye Udeh
+## Final Year Project 2025/26 | Chizara Vincent Okoye Udeh
 
 ### Project Overview
 A systematic comparative study of six machine learning models for 
